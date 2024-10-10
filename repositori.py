@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from bson import ObjectId
 
 def get_total_accidents_by_area(database, area):
-    # Aggregate query to count accidents in a specific area
     return list(database.get_collection('AccidentRecords').aggregate([
         {
             "$geoNear": {
@@ -17,14 +16,12 @@ def get_total_accidents_by_area(database, area):
     ]))
 
 def get_total_accidents_by_area_and_period(database, area, start_date, end_date):
-    # Query to count accidents by area and within a specified time period
     return database.get_collection('AccidentRecords').count_documents({
         "location.coordinates": area["coordinates"],
         "crash_date": {"$gte": start_date, "$lt": end_date}
     })
 
 def get_accidents_by_primary_cause(database, cause, area):
-    # Query to count accidents by primary cause in a specific area
     return list(database.get_collection('AccidentRecords').aggregate([
         {
             "$match": {
@@ -36,7 +33,6 @@ def get_accidents_by_primary_cause(database, cause, area):
     ]))
 
 def get_injury_statistics(database, area):
-    # Aggregate query for injury statistics in a specific area
     return list(database.get_collection('AccidentRecords').aggregate([
         {
             "$match": {
