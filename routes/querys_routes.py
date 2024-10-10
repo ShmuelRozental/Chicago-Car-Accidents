@@ -1,6 +1,10 @@
+from datetime import datetime
+
 from flask import Flask, request, jsonify
-from repository import get_total_accidents_by_area, get_total_accidents_by_area_and_period, get_accidents_by_primary_cause, get_injury_statistics
+
 from dal.connect import database
+from repositori import get_total_accidents_by_area, get_total_accidents_by_area_and_period, \
+    get_accidents_by_primary_cause, get_injury_statistics
 
 app = Flask(__name__)
 

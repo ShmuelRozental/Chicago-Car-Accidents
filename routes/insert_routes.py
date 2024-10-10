@@ -1,5 +1,5 @@
 import os
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify
 from import_data import import_accident_data
 
 accident_bp = Blueprint('accidents', __name__)
