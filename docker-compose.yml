@@ -1,19 +1,25 @@
 version: '3'
 services:
+  app:
+    build:
+      context: .
+    container_name: api_chicago_car_accidents
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - DATABASE_URL=mongodb://mongodb:27017/flask_db
+    depends_on:
+      - mongodb
+    volumes:
+      - .:/code
+    command: flask run --host=0.0.0.0
+
   mongodb:
     image: mongo
-    container_name: mongodb
+    container_name: mongodb_chicago_car_accidents
     ports:
       - "27017:27017"
     volumes:
-      - ./data:/data/db
-
-  app:
-    build: ./app
-    container_name: app
-    depends_on:
-      - mongodb
-    ports:
-      - "5000:5000"
-    volumes:
-      - ./app:/app
+      - ./mongo_data:/data/db
