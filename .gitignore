@@ -6,3 +6,4 @@ mongo_data
 
 .env
 __pycache__/
+ data/
