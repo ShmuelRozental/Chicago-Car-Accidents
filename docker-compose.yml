@@ -9,12 +9,12 @@ services:
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=development
-      - DATABASE_URL=mongodb://mongodb:27017/flask_db
+      - DATABASE_URL=mongodb://mongodb:27017/TrafficAccidentsDB
     depends_on:
       - mongodb
     volumes:
       - .:/code
-    command: flask run --host=0.0.0.0
+    command: flask run --host=0.0.0.0 --port=5000
 
   mongodb:
     image: mongo
