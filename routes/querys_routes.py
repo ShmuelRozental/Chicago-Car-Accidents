@@ -1,47 +1,109 @@
-from datetime import datetime
+from ..services import AccidentService
+from flask import Blueprint, request, jsonify
+from ..utils.data_utils import serialize_data
 
-from flask import Flask, request, jsonify
 
-from dal.connect import database
-from repositori import get_total_accidents_by_area, get_total_accidents_by_area_and_period, \
-    get_accidents_by_primary_cause, get_injury_statistics
+queries_bp = Blueprint('queries', __name__)
+accident_service = AccidentService()
 
-app = Flask(__name__)
-
-@app.route('/accidents/area', methods=['GET'])
+@queries_bp.route('/accidents/area', methods=['GET'])
 def accidents_by_area():
-    area = request.args.get('area')
-    coordinates = [float(coord) for coord in request.args.get('coordinates').split(',')]
-    area_data = {"coordinates": coordinates, "maxDistance": 1000}
-    total_accidents = get_total_accidents_by_area(database, area_data)
-    return jsonify(total_accidents)
+    beat_of_occurrence = request.args.get('beat_of_occurrence')
 
-@app.route('/accidents/area/period', methods=['GET'])
-def accidents_by_area_and_period():
-    area = request.args.get('area')
-    coordinates = [float(coord) for coord in request.args.get('coordinates').split(',')]
-    start_date = datetime.fromisoformat(request.args.get('start_date'))
-    end_date = datetime.fromisoformat(request.args.get('end_date'))
-    area_data = {"coordinates": coordinates}
-    total_accidents = get_total_accidents_by_area_and_period(database, area_data, start_date, end_date)
-    return jsonify({"total_accidents": total_accidents})
+    if not beat_of_occurrence:
+        return jsonify({"error": "Missing 'beat_of_occurrence' parameter"}), 400
 
-@app.route('/accidents/cause', methods=['GET'])
-def accidents_by_primary_cause_route():
-    cause = request.args.get('cause')
-    area = request.args.get('area')
-    coordinates = [float(coord) for coord in request.args.get('coordinates').split(',')]
-    area_data = {"coordinates": coordinates}
-    accidents = get_accidents_by_primary_cause(database, cause, area_data)
-    return jsonify(accidents)
+    try:
+        beat_of_occurrence = int(beat_of_occurrence)
 
-@app.route('/injuries/statistics', methods=['GET'])
+        accidents, status_code = accident_service.fetch_accidents_by_area_and_time(beat_of_occurrence)
+
+        if status_code == 404:
+            return jsonify(accidents), 404
+
+        serialized_accidents = serialize_data(accidents)
+        return jsonify(serialized_accidents), 200
+
+    except ValueError as ve:
+        return jsonify({"error": str(ve)}), 400
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@queries_bp.route('/accidents/area-time', methods=['GET'])
+def accidents_by_area_and_time():
+    beat_of_occurrence = request.args.get('beat_of_occurrence')
+    start_date = request.args.get('start_date')  # Optional
+    end_date = request.args.get('end_date')      # Optional
+
+    if not beat_of_occurrence:
+        return jsonify({"error": "Missing 'beat_of_occurrence' parameter"}), 400
+
+    try:
+        beat_of_occurrence = int(beat_of_occurrence)
+
+        accidents, status_code = accident_service.fetch_accidents_by_area_and_time(
+            beat_of_occurrence, start_date, end_date
+        )
+
+        if status_code == 404:
+            return jsonify(accidents), 404
+
+        serialized_accidents = serialize_data(accidents)
+        return jsonify(serialized_accidents), 200
+
+    except ValueError as ve:
+        return jsonify({"error": str(ve)}), 400
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@queries_bp.route('/accidents/grouped-by-cause', methods=['GET'])
+def accidents_grouped_by_cause():
+    beat_of_occurrence = request.args.get('beat_of_occurrence')
+
+    if not beat_of_occurrence:
+        return jsonify({"error": "Missing 'beat_of_occurrence' parameter"}), 400
+
+    try:
+        beat_of_occurrence = int(beat_of_occurrence)
+
+        accidents, status_code = accident_service.fetch_accidents_grouped_by_cause(beat_of_occurrence)
+
+        if status_code == 404:
+            return jsonify(accidents), 404
+
+        serialized_accidents = serialize_data(accidents)
+        return jsonify(serialized_accidents), 200
+
+    except ValueError as ve:
+        return jsonify({"error": str(ve)}), 400
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+@queries_bp.route('/accidents/injury-statistics', methods=['GET'])
 def injury_statistics():
-    area = request.args.get('area')
-    coordinates = [float(coord) for coord in request.args.get('coordinates').split(',')]
-    area_data = {"coordinates": coordinates}
-    statistics = get_injury_statistics(database, area_data)
-    return jsonify(statistics)
+    beat_of_occurrence = request.args.get('beat_of_occurrence')
 
-if __name__ == '__main__':
-    app.run(debug=True)
+    if not beat_of_occurrence:
+        return jsonify({"error": "Missing 'beat_of_occurrence' parameter"}), 400
+
+    try:
+        beat_of_occurrence = int(beat_of_occurrence)
+
+        statistics, status_code = accident_service.fetch_injury_statistics(beat_of_occurrence)
+
+        if status_code == 404:
+            return jsonify(statistics), 404
+        serialized_statistic = serialize_data(statistics)
+        return jsonify(serialized_statistic), 200
+
+    except ValueError as ve:
+        return jsonify({"error": str(ve)}), 400
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

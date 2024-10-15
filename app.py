@@ -1,16 +1,19 @@
 from dotenv import load_dotenv
 from flask import Flask
-from dal.connect import database
-from routes.querys_routes import queries_bp
+from .routes import queries_bp
+from .routes import accident_bp
+
 
 load_dotenv()
 
 app = Flask(__name__)
 
-app.config.from_object('config.Config')
+app.config.from_object('app.config.Config')
 
 
-from routes.insert_routes import accident_bp
+
+
+
 app.register_blueprint(accident_bp)
 app.register_blueprint(queries_bp)
 

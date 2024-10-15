@@ -1,25 +1,29 @@
-version: '3'
+version: '3.4'
+
 services:
   app:
     build:
       context: .
-    container_name: api_chicago_car_accidents
+      dockerfile: ./Dockerfile
     ports:
       - "5000:5000"
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=development
       - DATABASE_URL=mongodb://mongodb:27017/TrafficAccidentsDB
+       - PYTHONPATH=/app 
     depends_on:
       - mongodb
     volumes:
-      - .:/code
+      - .:/app  
     command: flask run --host=0.0.0.0 --port=5000
+    restart: always  
 
   mongodb:
-    image: mongo
+    image: mongo:latest
     container_name: mongodb_chicago_car_accidents
     ports:
       - "27017:27017"
     volumes:
       - ./mongo_data:/data/db
+    restart: always  

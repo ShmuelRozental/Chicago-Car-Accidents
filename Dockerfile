@@ -1,24 +1,33 @@
-# Use the official Python image
-FROM python:3.9-slim
+# Use a lightweight Python base image
+FROM python:3-slim
 
-# Set the working directory in the container
-WORKDIR /code
+# Expose the application port
+EXPOSE 5002
 
-# Copy requirements.txt and install dependencies
-COPY requirements.txt .
+# Keeps Python from generating .pyc files in the container
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Turns off output buffering for logs
+ENV PYTHONUNBUFFERED=1
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy the requirements first to leverage Docker's caching mechanism
+COPY requirements.txt /app/
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy the rest of the application code
+# Copy the rest of the application code into /app
 COPY . .
 
-# Expose the Flask app port
-EXPOSE 5000
+# Create a non-root user with access to /app
+RUN adduser --uid 5678 --disabled-password --gecos "" appuser && \
+    chown -R appuser /app
 
-# Set environment variables for Flask
-ENV FLASK_APP=app.py
-ENV FLASK_ENV=development
+# Switch to the non-root user
+USER appuser
 
-# Command to run the Flask application
-CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
+# Set the default command to run the app with Gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:5002", "app:app"]
